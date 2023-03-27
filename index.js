@@ -12,9 +12,12 @@ const argentProxyClassHash = "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106
 
 const mnemonic = ""
 
+let isNeedToDeploy = false
+let isNeedToSwap = false
 
 
-for (let i = 0; i < 10; i++) {
+
+for (let i = 0; i < 1; i++) {
 
   let starkKeyPair = getStarkPair(mnemonic, i);
 
@@ -41,25 +44,56 @@ for (let i = 0; i < 10; i++) {
 
   const accountAX = new Account(provider, contractAddress, starkKeyPair);
 
+  if (isNeedToDeploy) {
+    const deployAccountPayload = {
+      classHash: argentProxyClassHash,
+      constructorCalldata: constructorCallData,
+      contractAddress: contractAddress,
+      addressSalt: starkKeyPublic,
+    };
 
-  // const deployAccountPayload = {
-  //   classHash: argentProxyClassHash,
-  //   constructorCalldata: constructorCallData,
-  //   contractAddress: contractAddress,
-  //   addressSalt: starkKeyPublic,
-  // };
+    const { transaction_hash, contract_address } = await accountAX.deployAccount(
+      deployAccountPayload
+    );
 
-  // const { transaction_hash, contract_address } = await accountAX.deployAccount(
-  //   deployAccountPayload
-  // );
+    console.log(`\nAccount contract deployment in progress...\n`);
+    console.log(
+      `Check deployment transaction status at \n\nhttps://starkscan.co/tx/${transaction_hash}\n`
+    );
+    console.log(
+      `Once the transaction is confirmed. The account is deployed at \n\nhttps://starkscan.co/contract/${contract_address}\n`
+    );
+  }
 
-  // console.log(`\nAccount contract deployment in progress...\n`);
-  // console.log(
-  //   `Check deployment transaction status at \n\nhttps://testnet.starkscan.co/tx/${transaction_hash}\n`
-  // );
-  // console.log(
-  //   `Once the transaction is confirmed. The account is deployed at \n\nhttps://testnet.starkscan.co/tx/${contract_address}\n`
-  // );
+  if (isNeedToSwap) {
+    const { transaction_hash } = await accountAX.execute(
+      [
+        // Calling the first contract
+        {
+          contractAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7", //ETH
+          entrypoint: "approve",
+          calldata: stark.compileCalldata({
+            spender: "0x10884171baf1914edc28d7afb619b40a4051cfae78a094a55d230f19e944a28", //MySwap
+            amount: { type: 'struct', low: '4000000000000000', high: '0' }, // 0.004 ETH
+          })
+        },
+        // Calling the second contract
+        {
+          contractAddress: "0x10884171baf1914edc28d7afb619b40a4051cfae78a094a55d230f19e944a28",
+          entrypoint: "swap",
+          calldata: stark.compileCalldata({
+            pool_id: "1",
+            token_from_addr: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7",
+            amount_from: { type: 'struct', low: '4000000000000000', high: '0' },
+            amount_to_min: { type: 'struct', low: '0', high: '0' },
+          })
+        }
+      ]
+    )
+    console.log(
+      `Check swap transaction status at \n\nhttps://starkscan.co/tx/${transaction_hash}\n`
+    );
+  }
 
 }
 
