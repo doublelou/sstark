@@ -1,4 +1,4 @@
-import { Account, ec, json, stark, Provider, hash, Contract, uint256 } from "starknet";
+import { Account, ec, json, stark, Provider, hash, Contract, uint256, number, shortString } from "starknet";
 
 import { getStarkPair } from "./keyDerivation.js";
 import { formatEther } from "ethers";
@@ -14,6 +14,7 @@ const mnemonic = ""
 
 let isNeedToDeploy = false
 let isNeedToSwap = false
+let isNeedToDeployNFT = true
 
 
 
@@ -93,6 +94,43 @@ for (let i = 0; i < 1; i++) {
     console.log(
       `Check swap transaction status at \n\nhttps://starkscan.co/tx/${transaction_hash}\n`
     );
+  }
+
+  if (isNeedToDeployNFT) {
+
+    console.log("Deployment Tx - ERC721 Contract to StarkNet...");
+
+    const compiledErc721 = json.parse(
+      fs
+        .readFileSync("./src/interfaces/ERC721EnumerableMintableBurnable.json")
+        .toString("ascii")
+    );
+
+    // const { transaction_hash, contract_address } = await provider.deployContract({
+    //   contract: compiledErc721,
+    //   constructorCalldata: [
+    //     number.hexToDecimalString(shortString.encodeShortString("MyStarkNFT")),
+    //     number.hexToDecimalString(shortString.encodeShortString("MSN")),
+    //     contractAddress,
+    //   ],
+    //   addressSalt: starkKeyPublic,
+    // });
+
+    const deployResponse = await accountAX.declareDeploy({
+      contract: compiledErc721,
+      classHash: "0x0633306ed707e0eca5ae2e828d840c760976232000d2dcefdf4089606b590495",
+      constructorCalldata: [
+        number.hexToDecimalString(shortString.encodeShortString("MyStarkNFT")),
+        number.hexToDecimalString(shortString.encodeShortString("MSN")),
+        contractAddress,
+      ],
+    });
+
+    console.log(deployResponse)
+
+    // console.log(
+    //   `Follow the tx status on: https://starkscan.co/tx/${transaction_hash}`
+    // );
   }
 
 }
