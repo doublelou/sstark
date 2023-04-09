@@ -19,7 +19,7 @@ const mnemonic = process.env.MNEMONIC
 
 ///////////////////////////
 let isNeedToDeploy = false
-let isNeedToSwap = true
+let isNeedToSwap = false
 let isNeedToDeployNFT = false
 ///////////////////////////
 
