@@ -1,22 +1,27 @@
 import { Account, ec, json, stark, Provider, hash, Contract, uint256, number, shortString } from "starknet";
-
+import * as dotenv from 'dotenv'
 import { getStarkPair } from "./keyDerivation.js";
 import { formatEther } from "ethers";
 
+
+
 import fs from "fs";
+
+dotenv.config()
+
 
 const provider = new Provider({ sequencer: { network: "mainnet-alpha" } });
 
 const accountClassHash = "0x033434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2";
 const argentProxyClassHash = "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918";
 
-const mnemonic = ""
+const mnemonic = process.env.MNEMONIC
 
+///////////////////////////
 let isNeedToDeploy = false
-let isNeedToSwap = false
-let isNeedToDeployNFT = true
-
-
+let isNeedToSwap = true
+let isNeedToDeployNFT = false
+///////////////////////////
 
 for (let i = 0; i < 1; i++) {
 
