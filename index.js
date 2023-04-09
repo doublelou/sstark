@@ -23,7 +23,7 @@ let isNeedToSwap = true
 let isNeedToDeployNFT = false
 ///////////////////////////
 
-for (let i = 0; i < 1; i++) {
+for (let i = 0; i < 10; i++) {
 
   let starkKeyPair = getStarkPair(mnemonic, i);
 
