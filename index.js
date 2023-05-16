@@ -10,7 +10,11 @@ import fs from "fs";
 dotenv.config()
 
 
-const provider = new Provider({ sequencer: { network: "mainnet-alpha" } });
+//const provider = new Provider({ sequencer: { network: "mainnet-alpha" } });
+
+const provider = new Provider({ rpc: { nodeUrl: 'https://starknet-mainnet.g.alchemy.com/v2/XwgsGzr7yeeGy_WpflB-UI3s89m09hyu' } })
+
+
 
 const accountClassHash = "0x033434ad846cdd5f23eb73ff09fe6fddd568284a0fb7d1be20ee482f044dabe2";
 const argentProxyClassHash = "0x25ec026985a3bf9d0cc1fe17326b245dfdc3ff89b8fde106542a3ea56c5a918";
@@ -22,9 +26,10 @@ const isNeedToDeploy = false
 const isNeedToSwap = false
 const isNeedToDeployNFT = false
 const isNeedToLendToNostra = false // !! работает только в том случае если на кошельке есть USDC (1$)
+const isNeedToLendToZklend = false
 ///////////////////////////
 
-for (let i = 0; i < 10; i++) {
+for (let i = 1; i < 10; i++) {
 
   let starkKeyPair = getStarkPair(mnemonic, i);
 
@@ -164,6 +169,34 @@ for (let i = 0; i < 10; i++) {
     )
     console.log(
       `Check lend transaction status at \n\nhttps://starkscan.co/tx/${transaction_hash}\n`
+    );
+  }
+
+  if (isNeedToLendToZklend) {
+    const { transaction_hash } = await accountAX.execute(
+      [
+        // Calling the first contract
+        {
+          contractAddress: "0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7", //ETH
+          entrypoint: "approve",
+          calldata: stark.compileCalldata({
+            spender: "0x04c0a5193d58f74fbace4b74dcf65481e734ed1714121bdc571da345540efa05", //zkLend
+            amount: { type: 'struct', low: '1000000000000000', high: '0' }, // 0.001 ETH
+          })
+        },
+        //Calling the second contract
+        {
+          contractAddress: "0x04c0a5193d58f74fbace4b74dcf65481e734ed1714121bdc571da345540efa05", //zkLend
+          entrypoint: "deposit",
+          calldata: stark.compileCalldata({
+            token: '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
+            amount: '0x38d7ea4c68000'//{ type: 'struct', low: '1000000000000000', high: '0' }, // 0.001 ETH
+          })
+        }
+      ]
+    )
+    console.log(
+      `Check lend (zkLend) transaction status at \n\nhttps://starkscan.co/tx/${transaction_hash}\n`
     );
   }
 
